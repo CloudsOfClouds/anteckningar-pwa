@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <!-- v0.1 Step A -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="Anteckningar v0.1 (Step A) - minimal notes app shell" />
+    <title>Anteckningar v0.1</title>
+    <link rel="stylesheet" href="styles-does-not-exist.css" />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Hoppa till innehåll</a>
+
+    <header class="topbar">
+      <div class="topbar__left">
+        <div class="brand">
+          <div class="brand__title">Anteckningar</div>
+          <div class="brand__meta">v0.1 • Step A</div>
+        </div>
+      </div>
+
+      <div class="topbar__right">
+        <button id="themeToggle" class="btn btn--ghost" type="button" aria-pressed="false">
+          Theme
+        </button>
+      </div>
+    </header>
+
+    <main id="main" class="app" aria-label="Anteckningar app">
+      <section class="panel panel--list" aria-label="Anteckningslista">
+        <div class="panel__header">
+          <label class="search" aria-label="Sök">
+            <span class="search__label">Sök</span>
+            <input
+              id="searchInput"
+              class="search__input"
+              type="search"
+              placeholder="Sök i anteckningar"
+              autocomplete="off"
+            />
+          </label>
+
+          <div class="actions">
+            <button id="newNoteBtn" class="btn btn--primary" type="button">New</button>
+            <button id="backupBtn" class="btn" type="button">Backup</button>
+          </div>
+        </div>
+
+        <div class="list" role="list" aria-label="Anteckningar">
+          <div class="empty-state" role="note" aria-live="polite">
+            <div class="empty-state__title">Inga anteckningar ännu</div>
+            <div class="empty-state__text">
+              Klicka på <strong>New</strong> för att skapa en anteckning.
+            </div>
+          </div>
+
+          <!-- Step A: Placeholder items for layout feel -->
+          <button class="note-card note-card--placeholder" type="button" disabled aria-disabled="true">
+            <div class="note-card__title">Exempelanteckning</div>
+            <div class="note-card__snippet">Här syns en kort förhandsvisning...</div>
+          </button>
+          <button class="note-card note-card--placeholder" type="button" disabled aria-disabled="true">
+            <div class="note-card__title">En till</div>
+            <div class="note-card__snippet">Listan ska kännas lätt att skumma.</div>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel panel--editor" aria-label="Editor">
+        <div class="panel__header panel__header--editor">
+          <div class="editor-meta" aria-live="polite">
+            <div class="editor-meta__title">Editor</div>
+            <div class="editor-meta__hint">Välj en anteckning, eller skapa ny</div>
+          </div>
+
+          <div class="actions">
+            <button id="deleteBtn" class="btn btn--danger" type="button">Delete</button>
+          </div>
+        </div>
+
+        <div class="editor" aria-label="Redigera anteckning">
+          <label class="field">
+            <span class="field__label">Title</span>
+            <input id="titleInput" class="field__input" type="text" placeholder="Titel" disabled />
+          </label>
+
+          <label class="field field--grow">
+            <span class="field__label">Note</span>
+            <textarea
+              id="contentInput"
+              class="field__textarea"
+              placeholder="Skriv din anteckning här..."
+              disabled
+            ></textarea>
+          </label>
+
+          <div class="editor-footer" aria-live="polite">
+            <span class="badge">Step A</span>
+            <span class="muted">Autosave kommer i nästa steg</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
