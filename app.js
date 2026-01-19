@@ -1,10 +1,10 @@
-// v0.1 Step C
-// Adds Delete with a short "Deleted" animation and persists to localStorage.
+// v0.1 Step D
+// Adds Backup button: copies all app data (JSON) to clipboard with feedback and fallback.
 
 (function () {
   "use strict";
 
-  const APP_VERSION = "v0.1 Step C";
+  const APP_VERSION = "v0.1 Step D";
   const STORAGE_KEYS = {
     theme: "notes_pwa_theme",
     notes: "notes_pwa_notes_v01",
@@ -24,7 +24,6 @@
     titleInput: document.getElementById("titleInput"),
     contentInput: document.getElementById("contentInput"),
     editorHint: document.getElementById("editorHint"),
-    statusBadge: document.getElementById("statusBadge"),
     statusText: document.getElementById("statusText"),
     toast: document.getElementById("toast")
   };
@@ -146,7 +145,6 @@
         updatedAt: typeof n.updatedAt === "number" ? n.updatedAt : nowMs()
       }));
 
-    // Sort by last updated
     state.notes.sort((a, b) => b.updatedAt - a.updatedAt);
 
     const storedSelected = safeGetLocalStorage(STORAGE_KEYS.selectedId);
@@ -169,6 +167,10 @@
       saveToStorage();
       setStatus("Saved");
     }, 350);
+  }
+
+  function setStatus(text) {
+    if (els.statusText) els.statusText.textContent = text;
   }
 
   // Notes actions
@@ -223,6 +225,12 @@
     return remaining.length ? remaining[0].id : null;
   }
 
+  function setEditorEnabled(enabled) {
+    if (els.titleInput) els.titleInput.disabled = !enabled;
+    if (els.contentInput) els.contentInput.disabled = !enabled;
+    if (els.deleteBtn) els.deleteBtn.disabled = !enabled;
+  }
+
   function deleteSelectedNote() {
     if (isDeleting) return;
 
@@ -238,35 +246,81 @@
 
     const id = note.id;
 
-    // Try to animate the corresponding list item
     const listItem = els.notesList
       ? els.notesList.querySelector(`.note-card[data-id="${CSS.escape(id)}"]`)
       : null;
 
     if (listItem) {
       listItem.classList.add("is-deleting");
-      // Next frame: transition to "deleted"
       window.requestAnimationFrame(() => {
         listItem.classList.add("is-deleted");
       });
     }
 
     window.setTimeout(() => {
-      // Remove from state
       state.notes = state.notes.filter((n) => n.id !== id);
-
-      // Pick next selection
       state.selectedId = pickNextSelectedId(id);
-
       saveToStorage();
-      isDeleting = false;
 
+      isDeleting = false;
       showToast("Deleted");
       render();
-
-      // Focus editor if we still have notes
       if (state.selectedId) focusEditor();
     }, DELETE_ANIM_MS);
+  }
+
+  // Backup
+  function buildBackupPayload() {
+    return {
+      app: "Anteckningar",
+      version: APP_VERSION,
+      exportedAt: new Date().toISOString(),
+      data: {
+        notes: state.notes
+      }
+    };
+  }
+
+  async function copyTextToClipboard(text) {
+    // Preferred API
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    // Fallback: execCommand
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "true");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    ta.style.top = "0";
+    document.body.appendChild(ta);
+    ta.select();
+
+    const ok = document.execCommand && document.execCommand("copy");
+    document.body.removeChild(ta);
+
+    if (!ok) throw new Error("Clipboard copy failed");
+  }
+
+  async function runBackup() {
+    try {
+      const payload = buildBackupPayload();
+      const json = JSON.stringify(payload, null, 2);
+      await copyTextToClipboard(json);
+      showToast("Copied!");
+    } catch (err) {
+      showToast("Could not copy. Select and copy manually.");
+      // Last resort: open a prompt with the JSON (user can copy)
+      try {
+        const payload = buildBackupPayload();
+        const json = JSON.stringify(payload, null, 2);
+        window.prompt("Copy this backup JSON:", json);
+      } catch {
+        // ignore
+      }
+    }
   }
 
   // UI rendering
@@ -337,16 +391,6 @@
     });
   }
 
-  function setEditorEnabled(enabled) {
-    if (els.titleInput) els.titleInput.disabled = !enabled;
-    if (els.contentInput) els.contentInput.disabled = !enabled;
-    if (els.deleteBtn) els.deleteBtn.disabled = !enabled;
-  }
-
-  function setStatus(text) {
-    if (els.statusText) els.statusText.textContent = text;
-  }
-
   function renderEditor() {
     const note = getSelectedNote();
 
@@ -386,16 +430,8 @@
   function wireUI() {
     if (els.themeToggle) els.themeToggle.addEventListener("click", toggleTheme);
     if (els.newNoteBtn) els.newNoteBtn.addEventListener("click", createNote);
-
-    if (els.backupBtn) {
-      els.backupBtn.addEventListener("click", () => {
-        showToast("Backup: not implemented yet");
-      });
-    }
-
-    if (els.deleteBtn) {
-      els.deleteBtn.addEventListener("click", deleteSelectedNote);
-    }
+    if (els.deleteBtn) els.deleteBtn.addEventListener("click", deleteSelectedNote);
+    if (els.backupBtn) els.backupBtn.addEventListener("click", runBackup);
 
     if (els.searchInput) {
       els.searchInput.addEventListener("input", (e) => {
