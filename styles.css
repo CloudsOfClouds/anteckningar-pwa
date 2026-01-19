@@ -386,7 +386,7 @@ body {
 .note-card.is-deleting {
   opacity: 0.25;
   transform: translateX(8px);
-  transition: opacity 200ms ease, transform 200ms ease;
+  transition: opacity 400ms ease, transform 200ms ease;
   pointer-events: none;
 }
 
@@ -395,3 +395,4 @@ body {
   transform: translateX(18px);
   transition: opacity 220ms ease, transform 220ms ease;
 }
+
