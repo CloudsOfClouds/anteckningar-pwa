@@ -1,15 +1,17 @@
-// v0.1 Step B
-// Implements localStorage notes: create, list, select, edit (autosave), and sort by last updated.
+// v0.1 Step C
+// Adds Delete with a short "Deleted" animation and persists to localStorage.
 
 (function () {
   "use strict";
 
-  const APP_VERSION = "v0.1 Step B";
+  const APP_VERSION = "v0.1 Step C";
   const STORAGE_KEYS = {
     theme: "notes_pwa_theme",
     notes: "notes_pwa_notes_v01",
     selectedId: "notes_pwa_selected_id_v01"
   };
+
+  const DELETE_ANIM_MS = 230;
 
   const els = {
     themeToggle: document.getElementById("themeToggle"),
@@ -35,6 +37,7 @@
 
   let toastTimer = null;
   let saveTimer = null;
+  let isDeleting = false;
 
   function showToast(message) {
     if (!els.toast) return;
@@ -77,14 +80,19 @@
   }
 
   function generateId() {
-    // Simple unique id, good enough for local app use.
     return `n_${nowMs()}_${Math.random().toString(16).slice(2)}`;
   }
 
   function formatTime(ts) {
     try {
       const d = new Date(ts);
-      return d.toLocaleString(undefined, { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+      return d.toLocaleString(undefined, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
     } catch {
       return "";
     }
@@ -128,7 +136,6 @@
     const parsedNotes = safeParseJSON(rawNotes, []);
     const notes = Array.isArray(parsedNotes) ? parsedNotes : [];
 
-    // Minimal validation
     state.notes = notes
       .filter((n) => n && typeof n === "object")
       .map((n) => ({
@@ -138,6 +145,9 @@
         createdAt: typeof n.createdAt === "number" ? n.createdAt : nowMs(),
         updatedAt: typeof n.updatedAt === "number" ? n.updatedAt : nowMs()
       }));
+
+    // Sort by last updated
+    state.notes.sort((a, b) => b.updatedAt - a.updatedAt);
 
     const storedSelected = safeGetLocalStorage(STORAGE_KEYS.selectedId);
     if (storedSelected && state.notes.some((n) => n.id === storedSelected)) {
@@ -154,7 +164,6 @@
   }
 
   function scheduleSave() {
-    // Debounce saves to avoid writing on every keystroke
     window.clearTimeout(saveTimer);
     saveTimer = window.setTimeout(() => {
       saveToStorage();
@@ -164,6 +173,8 @@
 
   // Notes actions
   function createNote() {
+    if (isDeleting) return;
+
     const id = generateId();
     const ts = nowMs();
 
@@ -191,7 +202,7 @@
 
   function updateSelectedNote(fields) {
     const note = getSelectedNote();
-    if (!note) return;
+    if (!note || isDeleting) return;
 
     const nextTitle = typeof fields.title === "string" ? fields.title : note.title;
     const nextContent = typeof fields.content === "string" ? fields.content : note.content;
@@ -200,7 +211,6 @@
     note.content = nextContent;
     note.updatedAt = nowMs();
 
-    // Sort: newest updated first
     state.notes.sort((a, b) => b.updatedAt - a.updatedAt);
 
     setStatus("Saving...");
@@ -208,12 +218,62 @@
     renderListOnly();
   }
 
+  function pickNextSelectedId(deletedId) {
+    const remaining = state.notes.filter((n) => n.id !== deletedId);
+    return remaining.length ? remaining[0].id : null;
+  }
+
+  function deleteSelectedNote() {
+    if (isDeleting) return;
+
+    const note = getSelectedNote();
+    if (!note) {
+      showToast("Nothing to delete");
+      return;
+    }
+
+    isDeleting = true;
+    setEditorEnabled(false);
+    setStatus("Deleting...");
+
+    const id = note.id;
+
+    // Try to animate the corresponding list item
+    const listItem = els.notesList
+      ? els.notesList.querySelector(`.note-card[data-id="${CSS.escape(id)}"]`)
+      : null;
+
+    if (listItem) {
+      listItem.classList.add("is-deleting");
+      // Next frame: transition to "deleted"
+      window.requestAnimationFrame(() => {
+        listItem.classList.add("is-deleted");
+      });
+    }
+
+    window.setTimeout(() => {
+      // Remove from state
+      state.notes = state.notes.filter((n) => n.id !== id);
+
+      // Pick next selection
+      state.selectedId = pickNextSelectedId(id);
+
+      saveToStorage();
+      isDeleting = false;
+
+      showToast("Deleted");
+      render();
+
+      // Focus editor if we still have notes
+      if (state.selectedId) focusEditor();
+    }, DELETE_ANIM_MS);
+  }
+
   // UI rendering
   function clearListItems() {
     const list = els.notesList;
     if (!list) return;
 
-    // Remove everything except emptyState (we keep it in DOM)
     Array.from(list.children).forEach((child) => {
       if (child !== els.emptyState) child.remove();
     });
@@ -266,6 +326,7 @@
       btn.querySelector(".note-card__meta").textContent = meta;
 
       btn.addEventListener("click", () => {
+        if (isDeleting) return;
         state.selectedId = note.id;
         saveToStorage();
         render();
@@ -301,7 +362,6 @@
     if (els.editorHint) els.editorHint.textContent = "Autosave aktiv";
     setEditorEnabled(true);
 
-    // Prevent cursor jumps by only setting values if different
     if (els.titleInput && els.titleInput.value !== note.title) els.titleInput.value = note.title;
     if (els.contentInput && els.contentInput.value !== note.content) els.contentInput.value = note.content;
 
@@ -314,26 +374,18 @@
   }
 
   function focusEditor() {
-    // If title is empty, focus title; else focus content
     const note = getSelectedNote();
     if (!note) return;
 
     const titleEmpty = !note.title || !note.title.trim();
     const target = titleEmpty ? els.titleInput : els.contentInput;
-    if (target && !target.disabled) {
-      target.focus();
-    }
+    if (target && !target.disabled) target.focus();
   }
 
   // Wiring
   function wireUI() {
-    if (els.themeToggle) {
-      els.themeToggle.addEventListener("click", toggleTheme);
-    }
-
-    if (els.newNoteBtn) {
-      els.newNoteBtn.addEventListener("click", createNote);
-    }
+    if (els.themeToggle) els.themeToggle.addEventListener("click", toggleTheme);
+    if (els.newNoteBtn) els.newNoteBtn.addEventListener("click", createNote);
 
     if (els.backupBtn) {
       els.backupBtn.addEventListener("click", () => {
@@ -342,9 +394,7 @@
     }
 
     if (els.deleteBtn) {
-      els.deleteBtn.addEventListener("click", () => {
-        showToast("Delete: not implemented yet");
-      });
+      els.deleteBtn.addEventListener("click", deleteSelectedNote);
     }
 
     if (els.searchInput) {
