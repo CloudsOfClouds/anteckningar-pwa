@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="sv">
   <head>
-    <!-- v0.1 Step A -->
+    <!-- v0.1 Step B -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="description" content="Anteckningar v0.1 (Step A) - minimal notes app shell" />
+    <meta name="description" content="Anteckningar v0.1 (Step B) - localStorage notes" />
     <title>Anteckningar v0.1</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -16,7 +16,7 @@
       <div class="topbar__left">
         <div class="brand">
           <div class="brand__title">Anteckningar</div>
-          <div class="brand__meta">v0.1 • Step A</div>
+          <div class="brand__meta">v0.1 • Step B</div>
         </div>
       </div>
 
@@ -47,23 +47,13 @@
           </div>
         </div>
 
-        <div class="list" role="list" aria-label="Anteckningar">
-          <div class="empty-state" role="note" aria-live="polite">
+        <div id="notesList" class="list" role="list" aria-label="Anteckningar">
+          <div id="emptyState" class="empty-state" role="note" aria-live="polite">
             <div class="empty-state__title">Inga anteckningar ännu</div>
             <div class="empty-state__text">
               Klicka på <strong>New</strong> för att skapa en anteckning.
             </div>
           </div>
-
-          <!-- Step A: Placeholder items for layout feel -->
-          <button class="note-card note-card--placeholder" type="button" disabled aria-disabled="true">
-            <div class="note-card__title">Exempelanteckning</div>
-            <div class="note-card__snippet">Här syns en kort förhandsvisning...</div>
-          </button>
-          <button class="note-card note-card--placeholder" type="button" disabled aria-disabled="true">
-            <div class="note-card__title">En till</div>
-            <div class="note-card__snippet">Listan ska kännas lätt att skumma.</div>
-          </button>
         </div>
       </section>
 
@@ -71,7 +61,7 @@
         <div class="panel__header panel__header--editor">
           <div class="editor-meta" aria-live="polite">
             <div class="editor-meta__title">Editor</div>
-            <div class="editor-meta__hint">Välj en anteckning, eller skapa ny</div>
+            <div id="editorHint" class="editor-meta__hint">Välj en anteckning, eller skapa ny</div>
           </div>
 
           <div class="actions">
@@ -96,8 +86,8 @@
           </label>
 
           <div class="editor-footer" aria-live="polite">
-            <span class="badge">Step A</span>
-            <span class="muted">Autosave kommer i nästa steg</span>
+            <span id="statusBadge" class="badge">Step B</span>
+            <span id="statusText" class="muted">Redo</span>
           </div>
         </div>
       </section>
@@ -108,4 +98,3 @@
     <script src="app.js" defer></script>
   </body>
 </html>
-
