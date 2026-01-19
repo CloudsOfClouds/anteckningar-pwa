@@ -1,5 +1,4 @@
-/* v0.1 Step B */
-/* No frameworks. Mobile-first. */
+/* v0.1 UI polish */
 
 :root {
   --bg: #ffffff;
@@ -17,9 +16,7 @@
   --radius: 14px;
   --radius-sm: 10px;
 
-  --pad-1: 10px;
   --pad-2: 14px;
-  --pad-3: 18px;
 
   --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
 }
@@ -38,14 +35,9 @@
   --danger: #ff4d4d;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html,
-body {
-  height: 100%;
-}
+html, body { height: 100%; }
 
 body {
   margin: 0;
@@ -67,9 +59,7 @@ body {
   z-index: 9999;
 }
 
-.skip-link:focus {
-  left: 10px;
-}
+.skip-link:focus { left: 10px; }
 
 .topbar {
   position: sticky;
@@ -125,8 +115,13 @@ body {
   align-items: center;
 }
 
+.panel-title {
+  font-weight: 800;
+  font-size: 14px;
+}
+
 .editor-meta__title {
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .editor-meta__hint {
@@ -135,15 +130,43 @@ body {
   color: var(--muted);
 }
 
-.search {
-  display: grid;
-  gap: 6px;
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.search__label {
-  font-size: 12px;
-  color: var(--muted);
+.btn {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
 }
+
+.btn:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn--primary {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  border-color: transparent;
+}
+
+.btn--danger {
+  background: var(--danger);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.btn--ghost { background: transparent; }
 
 .search__input {
   width: 100%;
@@ -159,52 +182,14 @@ body {
   outline-offset: 2px;
 }
 
-.actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.btn {
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 10px 12px;
-  font-weight: 600;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.btn:focus {
-  outline: 2px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 2px;
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-.btn--primary {
-  background: var(--primary);
-  color: var(--primary-contrast);
-  border-color: transparent;
-}
-
-.btn--danger {
-  background: var(--danger);
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.btn--ghost {
-  background: transparent;
-}
-
 .list {
   padding: var(--pad-2);
   display: grid;
   gap: 10px;
+}
+
+.list--simple {
+  gap: 6px;
 }
 
 .empty-state {
@@ -218,9 +203,7 @@ body {
   background: rgba(255, 255, 255, 0.03);
 }
 
-.empty-state__title {
-  font-weight: 700;
-}
+.empty-state__title { font-weight: 800; }
 
 .empty-state__text {
   margin-top: 4px;
@@ -228,60 +211,62 @@ body {
   font-size: 13px;
 }
 
-.note-card {
+/* Simple list rows */
+.note-row {
   width: 100%;
   text-align: left;
   border: 1px solid var(--border);
   background: var(--bg);
-  border-radius: var(--radius);
-  padding: 12px 12px;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+
+  /* Important: force correct text color across browsers */
+  color: var(--text);
+
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+
   cursor: pointer;
 }
 
-.note-card:hover {
+.note-row:hover {
   filter: brightness(0.98);
 }
 
-[data-theme="dark"] .note-card:hover {
+[data-theme="dark"] .note-row:hover {
   filter: brightness(1.06);
 }
 
-.note-card__title {
+.note-row__title {
   font-weight: 800;
   font-size: 14px;
+
+  /* Important: force correct title color */
+  color: var(--text);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.note-card__snippet {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.note-card__meta {
-  margin-top: 8px;
+.note-row__date {
   font-size: 12px;
   color: var(--muted);
+  white-space: nowrap;
 }
 
-.note-card--active {
+.note-row--active {
   outline: 2px solid rgba(37, 99, 235, 0.35);
   outline-offset: 2px;
 }
 
+/* Editor */
 .editor {
   padding: var(--pad-2);
   display: grid;
-  gap: 12px;
-}
-
-.field {
-  display: grid;
-  gap: 6px;
-}
-
-.field__label {
-  font-size: 12px;
-  color: var(--muted);
+  gap: 10px;
 }
 
 .field__input,
@@ -295,8 +280,12 @@ body {
 }
 
 .field__textarea {
-  min-height: 180px;
+  min-height: 260px;
   resize: vertical;
+}
+
+.field__textarea--main {
+  min-height: 360px;
 }
 
 .field__input:disabled,
@@ -305,32 +294,14 @@ body {
   cursor: not-allowed;
 }
 
-.field--grow .field__textarea {
-  min-height: 240px;
-}
-
 .editor-footer {
   display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   color: var(--muted);
   font-size: 12px;
 }
 
-.badge {
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-  font-weight: 800;
-  font-size: 12px;
-}
-
-.muted {
-  color: var(--muted);
-}
+.muted { color: var(--muted); }
 
 .toast {
   position: fixed;
@@ -350,8 +321,20 @@ body {
   font-weight: 800;
 }
 
-.toast.is-visible {
-  opacity: 0.95;
+.toast.is-visible { opacity: 0.95; }
+
+/* Delete animation */
+.note-row.is-deleting {
+  opacity: 0.25;
+  transform: translateX(8px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.note-row.is-deleted {
+  opacity: 0;
+  transform: translateX(18px);
+  transition: opacity 220ms ease, transform 220ms ease;
 }
 
 /* Desktop layout */
@@ -361,38 +344,13 @@ body {
     align-items: start;
   }
 
-  .panel--list {
-    height: calc(100dvh - 84px);
-    display: grid;
-    grid-template-rows: auto 1fr;
-  }
-
+  .panel--list,
   .panel--editor {
     height: calc(100dvh - 84px);
     display: grid;
     grid-template-rows: auto 1fr;
   }
 
-  .list {
-    overflow: auto;
-  }
-
-  .editor {
-    overflow: auto;
-  }
+  .list { overflow: auto; }
+  .editor { overflow: auto; }
 }
-
-/* v0.1 Step C - delete animation */
-.note-card.is-deleting {
-  opacity: 0.25;
-  transform: translateX(8px);
-  transition: opacity 400ms ease, transform 200ms ease;
-  pointer-events: none;
-}
-
-.note-card.is-deleted {
-  opacity: 0;
-  transform: translateX(18px);
-  transition: opacity 220ms ease, transform 220ms ease;
-}
-
