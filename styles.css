@@ -381,3 +381,17 @@ body {
     overflow: auto;
   }
 }
+
+/* v0.1 Step C - delete animation */
+.note-card.is-deleting {
+  opacity: 0.25;
+  transform: translateX(8px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.note-card.is-deleted {
+  opacity: 0;
+  transform: translateX(18px);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
