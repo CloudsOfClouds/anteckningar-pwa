@@ -1,10 +1,10 @@
-// v0.1 Step D
-// Adds Backup button: copies all app data (JSON) to clipboard with feedback and fallback.
+// v0.1 UI polish
+// UI texts in Swedish, simple list view (title + ISO date), keeps localStorage, delete animation, export backup.
 
 (function () {
   "use strict";
 
-  const APP_VERSION = "v0.1 Step D";
+  const APP_VERSION = "v0.1";
   const STORAGE_KEYS = {
     theme: "notes_pwa_theme",
     notes: "notes_pwa_notes_v01",
@@ -82,16 +82,13 @@
     return `n_${nowMs()}_${Math.random().toString(16).slice(2)}`;
   }
 
-  function formatTime(ts) {
+  function formatDateISO(ts) {
     try {
       const d = new Date(ts);
-      return d.toLocaleString(undefined, {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
     } catch {
       return "";
     }
@@ -116,8 +113,8 @@
     if (els.themeToggle) {
       const pressed = normalized === "dark";
       els.themeToggle.setAttribute("aria-pressed", String(pressed));
-      els.themeToggle.textContent = pressed ? "Dark" : "Light";
-      els.themeToggle.title = "Toggle theme";
+      els.themeToggle.textContent = pressed ? "Mörkt" : "Ljust";
+      els.themeToggle.title = "Växla tema";
     }
   }
 
@@ -126,7 +123,7 @@
     const next = current === "dark" ? "light" : "dark";
     applyTheme(next);
     const ok = safeSetLocalStorage(STORAGE_KEYS.theme, next);
-    if (!ok) showToast("Theme changed, but could not save preference");
+    if (!ok) showToast("Kunde inte spara temat");
   }
 
   // Storage
@@ -157,7 +154,7 @@
 
   function saveToStorage() {
     const ok = safeSetLocalStorage(STORAGE_KEYS.notes, JSON.stringify(state.notes));
-    if (!ok) showToast("Could not save notes to localStorage");
+    if (!ok) showToast("Kunde inte spara anteckningar");
     safeSetLocalStorage(STORAGE_KEYS.selectedId, state.selectedId || "");
   }
 
@@ -165,7 +162,7 @@
     window.clearTimeout(saveTimer);
     saveTimer = window.setTimeout(() => {
       saveToStorage();
-      setStatus("Saved");
+      setStatus("Sparad");
     }, 350);
   }
 
@@ -192,7 +189,7 @@
     state.selectedId = id;
     saveToStorage();
 
-    showToast("New note created");
+    showToast("Ny anteckning");
     render();
     focusEditor();
   }
@@ -215,7 +212,7 @@
 
     state.notes.sort((a, b) => b.updatedAt - a.updatedAt);
 
-    setStatus("Saving...");
+    setStatus("Sparar...");
     scheduleSave();
     renderListOnly();
   }
@@ -236,18 +233,18 @@
 
     const note = getSelectedNote();
     if (!note) {
-      showToast("Nothing to delete");
+      showToast("Ingen anteckning vald");
       return;
     }
 
     isDeleting = true;
     setEditorEnabled(false);
-    setStatus("Deleting...");
+    setStatus("Raderar...");
 
     const id = note.id;
 
     const listItem = els.notesList
-      ? els.notesList.querySelector(`.note-card[data-id="${CSS.escape(id)}"]`)
+      ? els.notesList.querySelector(`.note-row[data-id="${CSS.escape(id)}"]`)
       : null;
 
     if (listItem) {
@@ -263,32 +260,28 @@
       saveToStorage();
 
       isDeleting = false;
-      showToast("Deleted");
+      showToast("Raderad");
       render();
       if (state.selectedId) focusEditor();
     }, DELETE_ANIM_MS);
   }
 
-  // Backup
+  // Export
   function buildBackupPayload() {
     return {
       app: "Anteckningar",
       version: APP_VERSION,
       exportedAt: new Date().toISOString(),
-      data: {
-        notes: state.notes
-      }
+      data: { notes: state.notes }
     };
   }
 
   async function copyTextToClipboard(text) {
-    // Preferred API
     if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
       await navigator.clipboard.writeText(text);
       return;
     }
 
-    // Fallback: execCommand
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "true");
@@ -304,19 +297,18 @@
     if (!ok) throw new Error("Clipboard copy failed");
   }
 
-  async function runBackup() {
+  async function runExport() {
     try {
       const payload = buildBackupPayload();
       const json = JSON.stringify(payload, null, 2);
       await copyTextToClipboard(json);
-      showToast("Copied!");
-    } catch (err) {
-      showToast("Could not copy. Select and copy manually.");
-      // Last resort: open a prompt with the JSON (user can copy)
+      showToast("Kopierad");
+    } catch {
+      showToast("Kunde inte kopiera");
       try {
         const payload = buildBackupPayload();
         const json = JSON.stringify(payload, null, 2);
-        window.prompt("Copy this backup JSON:", json);
+        window.prompt("Kopiera JSON:", json);
       } catch {
         // ignore
       }
@@ -357,27 +349,24 @@
     notes.forEach((note) => {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "note-card";
+      btn.className = "note-row";
       btn.setAttribute("role", "listitem");
       btn.dataset.id = note.id;
 
       if (note.id === state.selectedId) {
-        btn.classList.add("note-card--active");
+        btn.classList.add("note-row--active");
       }
 
-      const title = (note.title || "").trim() || "Untitled";
-      const snippet = (note.content || "").trim().replace(/\s+/g, " ").slice(0, 80);
-      const meta = formatTime(note.updatedAt);
+      const title = (note.title || "").trim() || "Utan titel";
+      const date = formatDateISO(note.updatedAt);
 
       btn.innerHTML = `
-        <div class="note-card__title"></div>
-        <div class="note-card__snippet"></div>
-        <div class="note-card__meta"></div>
+        <div class="note-row__title"></div>
+        <div class="note-row__date"></div>
       `;
 
-      btn.querySelector(".note-card__title").textContent = title;
-      btn.querySelector(".note-card__snippet").textContent = snippet || " ";
-      btn.querySelector(".note-card__meta").textContent = meta;
+      btn.querySelector(".note-row__title").textContent = title;
+      btn.querySelector(".note-row__date").textContent = date;
 
       btn.addEventListener("click", () => {
         if (isDeleting) return;
@@ -395,7 +384,7 @@
     const note = getSelectedNote();
 
     if (!note) {
-      if (els.editorHint) els.editorHint.textContent = "Välj en anteckning, eller skapa ny";
+      if (els.editorHint) els.editorHint.textContent = "Autosparas";
       setEditorEnabled(false);
       if (els.titleInput) els.titleInput.value = "";
       if (els.contentInput) els.contentInput.value = "";
@@ -403,7 +392,7 @@
       return;
     }
 
-    if (els.editorHint) els.editorHint.textContent = "Autosave aktiv";
+    if (els.editorHint) els.editorHint.textContent = "Autosparas";
     setEditorEnabled(true);
 
     if (els.titleInput && els.titleInput.value !== note.title) els.titleInput.value = note.title;
@@ -426,12 +415,11 @@
     if (target && !target.disabled) target.focus();
   }
 
-  // Wiring
   function wireUI() {
     if (els.themeToggle) els.themeToggle.addEventListener("click", toggleTheme);
     if (els.newNoteBtn) els.newNoteBtn.addEventListener("click", createNote);
     if (els.deleteBtn) els.deleteBtn.addEventListener("click", deleteSelectedNote);
-    if (els.backupBtn) els.backupBtn.addEventListener("click", runBackup);
+    if (els.backupBtn) els.backupBtn.addEventListener("click", runExport);
 
     if (els.searchInput) {
       els.searchInput.addEventListener("input", (e) => {
@@ -458,7 +446,6 @@
     loadFromStorage();
     wireUI();
     render();
-    showToast(`Loaded ${APP_VERSION}`);
   }
 
   document.addEventListener("DOMContentLoaded", init);
