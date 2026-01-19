@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="sv">
   <head>
-    <!-- v0.1 Step B -->
+    <!-- v0.1 UI polish (based on Step D) -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="description" content="Anteckningar v0.1 (Step B) - localStorage notes" />
+    <meta name="description" content="Anteckningar v0.1 - notes app" />
     <title>Anteckningar v0.1</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -16,7 +16,7 @@
       <div class="topbar__left">
         <div class="brand">
           <div class="brand__title">Anteckningar</div>
-          <div class="brand__meta">v0.1 • Step B</div>
+          <div class="brand__meta">v0.1</div>
         </div>
       </div>
 
@@ -30,63 +30,56 @@
     <main id="main" class="app" aria-label="Anteckningar app">
       <section class="panel panel--list" aria-label="Anteckningslista">
         <div class="panel__header">
-          <label class="search" aria-label="Sök">
-            <span class="search__label">Sök</span>
-            <input
-              id="searchInput"
-              class="search__input"
-              type="search"
-              placeholder="Sök i anteckningar"
-              autocomplete="off"
-            />
-          </label>
+          <div class="panel-title">Anteckningar</div>
+
+          <input
+            id="searchInput"
+            class="search__input"
+            type="search"
+            placeholder="Sök i anteckningar"
+            autocomplete="off"
+            aria-label="Sök i anteckningar"
+          />
 
           <div class="actions">
-            <button id="newNoteBtn" class="btn btn--primary" type="button">New</button>
-            <button id="backupBtn" class="btn" type="button">Backup</button>
+            <button id="newNoteBtn" class="btn btn--primary" type="button">Ny anteckning</button>
+            <button id="backupBtn" class="btn" type="button">Exportera</button>
           </div>
         </div>
 
-        <div id="notesList" class="list" role="list" aria-label="Anteckningar">
+        <div id="notesList" class="list list--simple" role="list" aria-label="Anteckningar">
           <div id="emptyState" class="empty-state" role="note" aria-live="polite">
             <div class="empty-state__title">Inga anteckningar ännu</div>
             <div class="empty-state__text">
-              Klicka på <strong>New</strong> för att skapa en anteckning.
+              Klicka på <strong>Ny anteckning</strong> för att skapa en anteckning.
             </div>
           </div>
         </div>
       </section>
 
-      <section class="panel panel--editor" aria-label="Editor">
+      <section class="panel panel--editor" aria-label="Anteckning">
         <div class="panel__header panel__header--editor">
           <div class="editor-meta" aria-live="polite">
-            <div class="editor-meta__title">Editor</div>
-            <div id="editorHint" class="editor-meta__hint">Välj en anteckning, eller skapa ny</div>
+            <div class="editor-meta__title">Anteckning</div>
+            <div id="editorHint" class="editor-meta__hint">Autosparas</div>
           </div>
 
           <div class="actions">
-            <button id="deleteBtn" class="btn btn--danger" type="button">Delete</button>
+            <button id="deleteBtn" class="btn btn--danger" type="button">Radera</button>
           </div>
         </div>
 
         <div class="editor" aria-label="Redigera anteckning">
-          <label class="field">
-            <span class="field__label">Title</span>
-            <input id="titleInput" class="field__input" type="text" placeholder="Titel" disabled />
-          </label>
+          <input id="titleInput" class="field__input" type="text" placeholder="Titel" disabled />
 
-          <label class="field field--grow">
-            <span class="field__label">Note</span>
-            <textarea
-              id="contentInput"
-              class="field__textarea"
-              placeholder="Skriv din anteckning här..."
-              disabled
-            ></textarea>
-          </label>
+          <textarea
+            id="contentInput"
+            class="field__textarea field__textarea--main"
+            placeholder="Skriv din anteckning här..."
+            disabled
+          ></textarea>
 
           <div class="editor-footer" aria-live="polite">
-            <span id="statusBadge" class="badge">Step B</span>
             <span id="statusText" class="muted">Redo</span>
           </div>
         </div>
